@@ -1,12 +1,227 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Тренажёр задания 14 ОГЭ</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тренажёр задания 14 ОГЭ</title>
+  <meta name="description" content="Онлайн-тренажёр задания 14 ОГЭ по информатике: обработка большого массива данных в электронной таблице. Файл задания, автоматическая проверка решения по критериям, практикум с формулами прямо в браузере.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23289628'/%3E%3Cpath d='M8 9h16v14H8zM8 14h16M8 19h16M14 9v14' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="src/style.css">
 </head>
 <body>
-<h1>Тренажёр задания 14 ОГЭ</h1>
-<p>Скоро здесь появится тренажёр по электронным таблицам.</p>
+  <header class="topbar">
+    <a class="brand" href="./" title="На главную">
+      <svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7"/><path d="M8 9h16v14H8zM8 14h16M8 19h16M14 9v14"/></svg>
+      <div class="brand-text">
+        <strong>Таблицы</strong>
+        <span>тренажёр задания 14 ОГЭ</span>
+      </div>
+    </a>
+    <nav class="modes" role="tablist" aria-label="Режим">
+      <button role="tab" id="mode-file" aria-selected="true">Задание<span class="wide"> с файлом</span></button>
+      <button role="tab" id="mode-practice" aria-selected="false">Практикум</button>
+    </nav>
+    <span class="spacer"></span>
+    <a class="btn ghost link-other" href="../oge15/" title="Тренажёр задания 15: исполнитель Робот">15<span>&nbsp;— Робот</span></a>
+    <a class="btn ghost link-other" href="../oge16/" title="Тренажёр задания 16: программа на Python">16<span>&nbsp;— Python</span></a>
+    <button class="btn ghost" id="btn-help" title="Справка по заданию 14 и тренажёру (F1)">Справка</button>
+  </header>
+
+  <!-- ================= Задание с файлом ================= -->
+  <main class="layout layout-file" id="view-file">
+    <section class="side" aria-label="Задание">
+      <div class="panel">
+        <div class="task-picker">
+          <button class="btn icon" id="btn-prev" title="Предыдущее задание" aria-label="Предыдущее задание">‹</button>
+          <select id="task-select" aria-label="Выбор задания"></select>
+          <button class="btn icon" id="btn-next" title="Следующее задание" aria-label="Следующее задание">›</button>
+        </div>
+
+        <article class="task-card">
+          <div class="task-meta">
+            <span class="chip" id="task-level"></span>
+            <span class="chip" id="task-variant"></span>
+            <span class="chip chip-score" id="task-status" hidden></span>
+          </div>
+          <h1 id="task-title"></h1>
+          <p class="task-source" id="task-source"></p>
+          <div id="task-text" class="task-text"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="side side-check" aria-label="Файл и проверка">
+      <div class="panel">
+        <div class="step">
+          <h2><span class="step-num">1</span> Скачайте файл задания</h2>
+          <button class="btn primary big" id="btn-download">Скачать <span id="download-name"></span></button>
+          <div class="btn-row">
+            <button class="btn" id="btn-new-variant" title="Новые данные и другие числа в вопросах">Другой вариант</button>
+            <button class="btn" id="btn-copy-link" title="Ссылка на этот вариант — у всех, кто её откроет, будет одна и та же таблица">Ссылка на вариант</button>
+          </div>
+          <p class="muted small">Откройте файл в LibreOffice Calc, МойОфис, Р7-Офис или Excel, выполните задание и сохраните файл в формате <b>.ods</b>.</p>
+        </div>
+
+        <div class="step">
+          <h2><span class="step-num">2</span> Загрузите решение на проверку</h2>
+          <label class="drop" id="drop">
+            <input type="file" id="file-input" accept=".ods,.xlsx,.xls,application/vnd.oasis.opendocument.spreadsheet,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+            <span class="drop-icon" aria-hidden="true">⇪</span>
+            <span><b>Выберите файл</b> или перетащите его сюда</span>
+            <span class="muted small">.ods или .xlsx — файл проверяется прямо в браузере и никуда не отправляется</span>
+          </label>
+        </div>
+
+        <section id="check-result" class="check" hidden aria-live="polite"></section>
+
+        <div class="btn-row">
+          <button class="btn" id="btn-hint" aria-expanded="false">Подсказка</button>
+          <button class="btn" id="btn-solution" aria-expanded="false">Решение</button>
+        </div>
+        <div id="hint" class="note" hidden></div>
+        <div id="solution" class="solution" hidden></div>
+
+        <details class="rules">
+          <summary>Как оценивается задание 14</summary>
+          <ul>
+            <li>В задании три оцениваемых элемента: два числовых ответа и диаграмма. За каждый верный элемент — 1 балл, максимум <b>3 балла</b>.</li>
+            <li>Числовой ответ засчитывается, если он верный. Допускается запись в другую ячейку и с большим числом знаков после запятой.</li>
+            <li>Диаграмма засчитывается, если сектора правильно отображают данные, данные определены верно и явно указаны на диаграмме (подписи значений), и есть легенда.</li>
+            <li>Расположение диаграммы около G6 и формулы, которыми получен ответ, на балл не влияют.</li>
+          </ul>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= Практикум ================= -->
+  <main class="layout layout-practice" id="view-practice" hidden>
+    <section class="side" aria-label="Вопросы практикума">
+      <div class="panel">
+        <div class="task-picker">
+          <select id="practice-select" aria-label="Тестовая таблица"></select>
+          <button class="btn" id="btn-practice-new" title="Сгенерировать новые данные в таблице">Новые данные</button>
+        </div>
+        <p class="muted small" id="practice-intro"></p>
+        <ol class="qlist" id="qlist"></ol>
+
+        <article class="qcard" id="qcard">
+          <div class="task-meta"><span class="chip" id="q-topic"></span></div>
+          <p class="q-text" id="q-text"></p>
+
+          <div id="q-formula-block">
+            <label class="field">
+              <span>Ответ — формула или число</span>
+              <input id="q-answer" class="mono" autocomplete="off" spellcheck="false" placeholder="=СЧЁТЕСЛИ(C2:C31;8)">
+            </label>
+          </div>
+
+          <div id="q-chart-block" hidden>
+            <label class="field">
+              <span>Диапазон данных диаграммы</span>
+              <input id="q-range" class="mono" autocomplete="off" spellcheck="false" placeholder="G6:H8">
+            </label>
+            <div class="chart-opts">
+              <label><input type="checkbox" id="q-legend"> Легенда</label>
+              <label>Подписи данных
+                <select id="q-labels">
+                  <option value="none">нет</option>
+                  <option value="value">значение как число</option>
+                  <option value="percent">значение в процентах</option>
+                </select>
+              </label>
+            </div>
+            <div class="pie-box" id="q-pie"></div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn primary" id="btn-q-check">Проверить</button>
+            <button class="btn" id="btn-q-hint" aria-expanded="false">Подсказка</button>
+            <button class="btn" id="btn-q-solution" aria-expanded="false">Решение</button>
+          </div>
+          <div id="q-result" class="q-result" hidden aria-live="polite"></div>
+          <div id="q-hint" class="note" hidden></div>
+          <div id="q-solution" class="solution" hidden></div>
+          <div class="btn-row">
+            <button class="btn ghost" id="btn-q-prev">‹ Назад</button>
+            <button class="btn ghost" id="btn-q-next">Дальше ›</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="pane pane-grid" aria-label="Тестовая таблица">
+      <div class="formula-bar">
+        <span class="cell-name" id="cell-name">E2</span>
+        <span class="fx" aria-hidden="true">ƒx</span>
+        <input id="formula-input" class="mono" autocomplete="off" spellcheck="false" aria-label="Содержимое ячейки">
+        <button class="btn small" id="btn-fill" title="Скопировать формулу из выделенной ячейки вниз до последней строки данных">Протянуть вниз</button>
+        <button class="btn small ghost" id="btn-clear-cells" title="Удалить всё, что вы ввели в таблицу">Очистить</button>
+      </div>
+      <div class="grid-wrap" id="grid-wrap" tabindex="0" aria-label="Тестовая таблица: стрелки — переход по ячейкам">
+        <table class="grid" id="grid"></table>
+      </div>
+      <p class="grid-note muted small">Столбцы A–D — исходные данные, их менять нельзя. В остальных ячейках можно писать числа, текст и формулы, как в Calc: выделите ячейку, введите текст и нажмите Enter. Двойной щелчок или F2 — изменить содержимое.</p>
+    </section>
+  </main>
+
+  <dialog id="help" class="help">
+    <div class="help-head">
+      <h2>Справка</h2>
+      <button class="btn ghost" id="btn-help-close" aria-label="Закрыть">✕</button>
+    </div>
+    <div class="help-body">
+      <h3>Что такое задание 14</h3>
+      <p>Дан файл электронной таблицы с большим набором данных — обычно около 1000 строк. Нужно ответить на два вопроса (ответы записать в ячейки H2 и H3) и построить круговую диаграмму. Задание выполняется на компьютере и оценивается в <b>3 балла</b> — это самое «дорогое» задание ОГЭ по информатике. На экзамене файл выдают в формате <b>.ods</b>.</p>
+
+      <h3>Как работать с тренажёром</h3>
+      <ul>
+        <li><b>Задание с файлом</b> — как на экзамене: скачайте таблицу, решите у себя в Calc или Excel, сохраните и загрузите файл. Тренажёр выставит баллы по критериям и объяснит ошибки. Кнопка «Ссылка на вариант» даёт ссылку, по которой все ученики получат одну и ту же таблицу.</li>
+        <li><b>Практикум</b> — тренировка формул на маленькой таблице прямо в браузере: типовые вопросы от простого СЧЁТЕСЛИ до процентов и диаграммы.</li>
+      </ul>
+
+      <h3>Главные функции</h3>
+      <table>
+        <tr><td><code>СЧЁТЕСЛИ(C2:C1001;8)</code></td><td>сколько ячеек равны 8</td></tr>
+        <tr><td><code>СЧЁТЕСЛИ(D2:D1001;"&gt;210")</code></td><td>сколько значений больше 210 (условие со знаком — в кавычках)</td></tr>
+        <tr><td><code>СЧЁТЕСЛИМН(C2:C1001;8;D2:D1001;"&gt;210")</code></td><td>сколько строк, где выполнены оба условия</td></tr>
+        <tr><td><code>СУММЕСЛИ(B2:B1001;2;D2:D1001)</code></td><td>сумма значений столбца D в строках, где в B число 2</td></tr>
+        <tr><td><code>СРЗНАЧЕСЛИ(B2:B1001;2;D2:D1001)</code></td><td>среднее значений D в строках, где в B число 2</td></tr>
+        <tr><td><code>СРЗНАЧЕСЛИМН(D2:D1001;B2:B1001;2;C2:C1001;9)</code></td><td>среднее по двум условиям (диапазон усреднения — первым)</td></tr>
+        <tr><td><code>=И(C2=8;D2&gt;210)</code> и <code>СЧЁТЕСЛИ(E2:E1001;ИСТИНА)</code></td><td>способ из демоверсии: вспомогательный столбец, протянутый вниз</td></tr>
+      </table>
+
+      <h3>Условия</h3>
+      <table>
+        <tr><td><code>"&gt;210"</code> / <code>"&gt;=210"</code></td><td>«более 210» / «не менее 210»</td></tr>
+        <tr><td><code>"&lt;210"</code> / <code>"&lt;=210"</code></td><td>«менее 210» / «не более 210»</td></tr>
+        <tr><td><code>"С"</code></td><td>текст точно равен «С» (СВ и СЗ не подходят)</td></tr>
+        <tr><td><code>"&lt;&gt;Ц"</code></td><td>всё, кроме «Ц»</td></tr>
+        <tr><td><code>"С*"</code></td><td>всё, что начинается с «С»</td></tr>
+      </table>
+
+      <h3>Диаграмма в LibreOffice Calc</h3>
+      <ol>
+        <li>Посчитайте данные для диаграммы в свободных ячейках: например, в G6:G8 — классы, в H6:H8 — количество участников (<code>=СЧЁТЕСЛИ($C$2:$C$1001;G6)</code>, протянуть вниз).</li>
+        <li>Выделите G6:H8 и выберите <b>Вставка → Диаграмма</b>, тип <b>Круговая</b>.</li>
+        <li>В мастере на шаге «Диапазон данных» оставьте «Ряды данных в столбцах» и «Первый столбец как подпись».</li>
+        <li>Проверьте, что включена <b>легенда</b>. Затем щёлкните по диаграмме правой кнопкой → <b>Вставить подписи данных</b> (значение как число).</li>
+        <li>Перетащите диаграмму так, чтобы левый верхний угол был около G6, и сохраните файл в формате .ods.</li>
+      </ol>
+      <p>В Excel: выделите диапазон → Вставка → Круговая; затем «Элементы диаграммы» (значок «+») → Легенда и Метки данных.</p>
+
+      <h3>Частые ошибки</h3>
+      <ul>
+        <li>«Более» и «не менее» перепутаны: <code>&gt;</code> и <code>&gt;=</code>.</li>
+        <li>Учтено только одно условие из двух.</li>
+        <li>Средний балл записан с округлением до целых — нужна точность не менее двух знаков после запятой.</li>
+        <li>У диаграммы нет подписей значений или легенды; в диаграмму попали лишние категории.</li>
+        <li>Файл сохранён не в том формате (например, .csv — в нём диаграмма пропадает).</li>
+      </ul>
+      <p class="muted small">Проверка выполняется прямо в браузере, файл никуда не отправляется. Тренажёр не заменяет проверку экспертами, но устроен по критериям ФИПИ.</p>
+    </div>
+  </dialog>
+
+  <script type="module" src="src/main.js"></script>
 </body>
 </html>
