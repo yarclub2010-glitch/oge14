@@ -585,6 +585,10 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 
 /* ---------- Адаптивность ---------- */
 
+@media (max-width: 900px) {
+  .link-other span { display: none; }
+}
+
 @media (max-width: 1000px) {
   .layout { display: flex; flex-direction: column; height: auto; flex: none; }
   .side { overflow: visible; }
