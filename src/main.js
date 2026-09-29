@@ -2,6 +2,7 @@
 // и практикум с формулами прямо в браузере.
 
 import { TASKS, LEVELS, taskById, buildVariant, fmtNum, precisionText } from './tasks.js';
+import { reportScore } from './platform.js';
 import { makeOds, readWorkbook, WorkbookError, colName, cellName, parseRanges, getCell } from './workbook.js';
 import { checkWorkbook, dataMatches } from './checker.js';
 import { PRACTICE, practiceById, describeAnswer } from './practice.js';
@@ -325,6 +326,7 @@ async function checkFile(file) {
 
   const result = checkWorkbook(book, v);
   state.lastResult = result;
+  reportScore(14, `${state.task.id}/${state.variant}`, result.score, 3);
   const best = state.scores[state.task.id];
   if (best === undefined || result.score > best) {
     state.scores[state.task.id] = result.score;
