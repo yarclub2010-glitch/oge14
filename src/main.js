@@ -2,7 +2,7 @@
 // и практикум с формулами прямо в браузере.
 
 import { TASKS, LEVELS, taskById, buildVariant, fmtNum, precisionText } from './tasks.js';
-import { reportScore } from './platform.js';
+import { inPlatform, reportScore } from './platform.js';
 import { makeOds, readWorkbook, WorkbookError, colName, cellName, parseRanges, getCell } from './workbook.js';
 import { checkWorkbook, dataMatches } from './checker.js';
 import { PRACTICE, practiceById, describeAnswer } from './practice.js';
@@ -11,7 +11,8 @@ import { parseFormula, refsOf, shiftFormula } from './formula.js';
 import { pieSVG } from './pie.js';
 
 const $ = (sel) => document.querySelector(sel);
-const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
 // ---------- Хранилище (может быть недоступно, например в приватном режиме) ----------
 
@@ -294,6 +295,7 @@ async function checkFile(file) {
   showCheck('<p class="muted">Проверяю файл…</p>');
   let book;
   try {
+    if (file.size > 20 * 1024 * 1024) throw new WorkbookError('Файл больше 20 МБ — это не таблица задания 14. Выберите свой файл.');
     const bytes = new Uint8Array(await file.arrayBuffer());
     book = await readWorkbook(bytes, file.name);
   } catch (e) {
@@ -309,7 +311,9 @@ async function checkFile(file) {
     return m && taskById(m[1]) ? { task: taskById(m[1]), variant: Number(m[2]) } : null;
   };
   const nameMatch = /task14_([a-z]+)_(\d+)/.exec(file.name);
-  const id = fromTag(book.variant) || (nameMatch && fromTag(`${nameMatch[1]}/${nameMatch[2]}`)) || { task: state.task, variant: state.variant };
+  const current = { task: state.task, variant: state.variant };
+  const id = inPlatform ? current
+    : fromTag(book.variant) || (nameMatch && fromTag(`${nameMatch[1]}/${nameMatch[2]}`)) || current;
   let switched = false;
   if (id.task !== state.task || id.variant !== state.variant) {
     openTask(id.task, id.variant);
@@ -372,7 +376,7 @@ function resultHTML(res, book, v, fileName, switched) {
     <ul class="results">${items}</ul>
     ${res.warnings.map((w) => `<div class="note small">${w}</div>`).join('')}
     ${chart}
-    ${s < 3 ? '<button class="btn small" id="btn-result-answers">Показать верные ответы</button>' : ''}`;
+    ${s < 3 && !inPlatform ? '<button class="btn small" id="btn-result-answers">Показать верные ответы</button>' : ''}`;
 }
 
 // Как тренажёр «видит» диаграмму ученика
@@ -875,6 +879,7 @@ function practiceChartData() {
   const width = r.c2 - r.c1 + 1;
   if (width > 2) return { error: 'Выделите два столбца: подписи и значения — или только столбец значений.' };
   const sheet = practice.sheet;
+  if (r.r2 - r.r1 + 1 > 40) return { error: 'Слишком большой диапазон: диаграмму строят по нескольким подсчитанным значениям, а не по исходному столбцу.' };
   const items = [];
   for (let row = r.r1; row <= r.r2; row++) {
     const val = sheet.result(row, r.c2);
@@ -954,7 +959,12 @@ window.addEventListener('keydown', (e) => {
 });
 
 function applyHash() {
-  const h = decodeURIComponent(location.hash.slice(1));
+  let h = '';
+  try {
+    h = decodeURIComponent(location.hash.slice(1));
+  } catch {
+    // испорченная ссылка — открываем тренажёр как обычно
+  }
   const pm = /^practice(?:\/([a-z]+))?$/.exec(h);
   if (pm) {
     setMode('practice', false);

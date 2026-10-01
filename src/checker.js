@@ -5,7 +5,8 @@
 import { getCell, cellName, colName } from './workbook.js';
 import { fmtNum } from './tasks.js';
 
-const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 const TARGETS = [{ row: 1, col: 7 }, { row: 2, col: 7 }]; // H2, H3
 
 // ---------- Числа в ячейках ----------

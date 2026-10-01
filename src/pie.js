@@ -1,7 +1,8 @@
 // Круговая диаграмма в SVG — для практикума и для предпросмотра диаграммы из файла.
 
 const PALETTE = ['#2f6fdf', '#f08a24', '#2f9e44', '#d6336c', '#7048e8', '#0c8599', '#e8590c', '#5c940d'];
-const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 const fmt = (x) => (Number.isInteger(x) ? String(x) : String(Math.round(x * 100) / 100).replace('.', ','));
 
 // items: [{ label, value }], opts: { legend: bool, labels: 'value' | 'percent' | 'none' }

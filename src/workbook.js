@@ -154,6 +154,7 @@ export function rangeText(r) {
 function rangeCells(book, ranges) {
   const out = [];
   for (const r of ranges) {
+    if ((r.r2 - r.r1 + 1) * (r.c2 - r.c1 + 1) > 100000) continue; // огромный диапазон — не данные задания
     const sheet = book.sheets.find((s) => s.name === r.sheet) ?? null;
     for (let row = r.r1; row <= r.r2; row++) {
       for (let col = r.c1; col <= r.c2; col++) out.push(getCell(sheet, row, col));
@@ -227,7 +228,8 @@ function odsSizes(content) {
 function toCm(v) {
   const m = /^(-?[\d.]+)(cm|mm|in|pt)?$/.exec(v || '');
   if (!m) return null;
-  return Number(m[1]) * { cm: 1, mm: 0.1, in: 2.54, pt: 2.54 / 72 }[m[2] || 'cm'];
+  const cm = Number(m[1]) * { cm: 1, mm: 0.1, in: 2.54, pt: 2.54 / 72 }[m[2] || 'cm'];
+  return Number.isFinite(cm) ? cm : null; // «.» или «1.2.3» — не размер
 }
 
 function readOdsRows(tableNode, sheet, frames, geom, sizes) {
@@ -297,7 +299,7 @@ function odsText(node) {
   let s = '';
   for (const c of node.children) {
     if (typeof c === 'string') s += c;
-    else if (c.local === 's') s += ' '.repeat(Number(attr(c, NS.text, 'c') || 1));
+    else if (c.local === 's') s += ' '.repeat(Math.min(Number(attr(c, NS.text, 'c')) || 1, 1000));
     else if (c.local === 'tab') s += '\t';
     else s += odsText(c);
   }
@@ -314,7 +316,7 @@ function odsFramePosition(frame, geom) {
     let acc = 0;
     for (;;) {
       const s = sizes[i] ?? def;
-      if (acc + s > pos + 0.01) return i;
+      if (acc + s > pos + 0.01 || i > 100000) return i; // за пределами листа — дальше не ищем
       acc += s;
       i++;
     }
@@ -589,7 +591,7 @@ function cachePoints(node) {
   const cache = find(node, NS.c, 'numCache') || find(node, NS.c, 'strCache');
   if (!cache) return [];
   const count = Number(attr(kid(cache, NS.c, 'ptCount') || { attrs: [] }, null, 'val') || 0);
-  const out = new Array(count).fill('');
+  const out = new Array(Math.min(Math.max(count, 0), 10000)).fill('');
   for (const pt of kids(cache, NS.c, 'pt')) {
     const idx = Number(attr(pt, null, 'idx'));
     const v = kid(pt, NS.c, 'v');

@@ -457,6 +457,9 @@ export function evaluate(tree, sheet, ctx = { depth: 0 }) {
       const r2 = Math.max(tree.a.row, tree.b.row);
       const c1 = Math.min(tree.a.col, tree.b.col);
       const c2 = Math.max(tree.a.col, tree.b.col);
+      if ((r2 - r1 + 1) * (c2 - c1 + 1) > 100000) {
+        throw new FormulaError('#ЗНАЧ!', `Диапазон ${tree.text} слишком большой: в задании столько ячеек не бывает.`);
+      }
       const values = [];
       for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) values.push(sheet.get(r, c));
       return { k: 'rangeValue', values, text: tree.text };

@@ -607,3 +607,6 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
   #formula-input { flex-basis: 60%; }
 }
 
+/* Внутри платформы репетитора готовое решение не показываем: балл идёт в домашнее задание */
+.in-platform #btn-solution, .in-platform #solution, .in-platform #btn-use-solution,
+.in-platform #btn-hint, .in-platform #hint { display: none !important; }
